@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADEGA IPANEMA | Cardápio & Delivery</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0d0f12;
+      --card-bg: rgba(26, 29, 36, 0.8);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary-color: #ff7a00;
+      --primary-hover: #ff5500;
+      --text-color: #ffffff;
+      --text-muted: #9aa0a6;
+      --green-color: #00e676;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding-bottom: 110px;
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(180deg, rgba(255,122,0,0.2) 0%, rgba(13,15,18,0) 100%),
+                  radial-gradient(circle at top left, rgba(255,122,0,0.15), transparent 50%);
+      text-align: center;
+      padding: 35px 20px 20px 20px;
+      position: relative;
+    }
+
+    .brand-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #fff 30%, var(--primary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-title i {
+      color: var(--primary-color);
+      -webkit-text-fill-color: initial;
+    }
+
+    header p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .btn-admin-trigger {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+    }
+
+    .btn-admin-trigger:hover {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+
+    /* BARRA DE FILTROS (CATEGORIAS) */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      scrollbar-width: none;
+    }
+
+    .filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 20px;
+      white-space: nowrap;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-chip.active, .filter-chip:hover {
+      background: var(--primary-color);
+      color: #fff;
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 15px rgba(255, 122, 0, 0.3);
+    }
+
+    /* CONTAINER PRINCIPAL */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 25px 0 15px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--card-border), transparent);
+      margin-left: 10px;
+    }
+
+    /* GRID & CARDS DE PRODUTO */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(10px);
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 122, 0, 0.4);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-img-wrapper {
+      width: 100%;
+      height: 150px;
+      overflow: hidden;
+      position: relative;
+      background: #15181e;
+    }
+
+    .card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+
+    .card:hover .card-img {
+      transform: scale(1.05);
+    }
+
+    .card-content {
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: space-between;
+    }
+
+    .card-info h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .card-info p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .price {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--green-color);
+    }
+
+    .btn-add {
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-add:active {
+      transform: scale(0.95);
+    }
+
+    .btn-add:hover {
+      background: var(--primary-hover);
+    }
+
+    /* BARRA FIXA DO CARRINHO */
+    .cart-bar {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 30px);
+      max-width: 800px;
+      background: rgba(22, 25, 32, 0.95);
+      border: 1px solid rgba(255, 122, 0, 0.3);
+      backdrop-filter: blur(15px);
+      padding: 12px 20px;
+      border-radius: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      z-index: 1000;
+    }
+
+    .cart-count {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .cart-total {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--green-color);
+    }
+
+    .btn-whatsapp {
+      background: #25d366;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    }
+
+    /* MODAIS */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+    }
+
+    .modal-content {
+      background: #161920;
+      border-radius: 20px;
+      padding: 22px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 85vh;
+      overflow-y: auto;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+      margin-bottom: 15px;
+    }
+
+    .close-btn {
+      background: rgba(255,255,255,0.05);
+      border: none;
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .input-field, select {
+      width: 100%;
+      padding: 12px 14px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: #0d0f12;
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary-color);
+    }
+
+    .btn-save {
+      background: var(--green-color);
+      color: #000;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 800;
+      width: 100%;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    .admin-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #0d0f12;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-edit { background: #f39c12; color: #fff; }
+    .btn-delete { background: #e74c3c; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <!-- CABEÇALHO -->
+  <header>
+    <button class="btn-admin-trigger" onclick="openAdminModal()">
+      <i class="fa-solid fa-gear"></i> Painel
+    </button>
+    <div class="brand-title">
+      <i class="fa-solid fa-wine-glass"></i> ADEGA IPANEMA
+    </div>
+    <p>Bebidas trincando de geladas no conforto da sua casa!</p>
+  </header>
+
+  <!-- FILTROS POR CATEGORIA -->
+  <div class="filter-bar" id="category-filters"></div>
+
+  <!-- CONTAINER DE PRODUTOS -->
+  <div class="container" id="menu-container"></div>
+
+  <!-- BARRA FIXA DO CARRINHO -->
+  <div class="cart-bar">
+    <div>
+      <div class="cart-count" id="cart-count">0 itens selecionados</div>
+      <div class="cart-total" id="cart-total">Total: R$ 0,00</div>
+    </div>
+    <button class="btn-whatsapp" onclick="openCartModal()">
+      <i class="fa-brands fa-whatsapp"></i> Ver Pedido
+    </button>
+  </div>
+
+  <!-- MODAL CARRINHO -->
+  <div class="modal" id="cartModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 style="font-size: 1.2rem;"><i class="fa-solid fa-cart-shopping" style="color:var(--primary-color);"></i> Seu Pedido</h2>
+        <button class="close-btn" onclick="closeModal('cartModal')">&times;</button>
+      </div>
+      <div id="cart-items"></div>
+      <div>
+        <input type="text" id="custName" class="input-field" placeholder="Seu Nome">
+        <input type="text" id="custAddress" class="input-field" placeholder="Endereço de Entrega (Rua, Nº, Bairro)">
+        <select id="paymentMethod" class="input-field">
+          <option value="Pix">Pagamento: Pix</option>
+          <option value="Cartão de Crédito/Débito">Pagamento: Cartão de Crédito / Débito</option>
+          <option value="Dinheiro">Pagamento: Dinheiro</option>
+        </select>
+      </div>
+      <div style="margin-top: 20px; font-size: 1.2rem; font-weight: 800; text-align: right; color: var(--green-color);" id="modal-total">
+        Total: R$ 0,00
+      </div>
+      <button class="btn-whatsapp" style="width: 100%; margin-top: 15px; justify-content: center;" onclick="sendWhatsApp()">
+        <i class="fa-brands fa-whatsapp"></i> Finalizar Pedido no WhatsApp
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL ADMIN -->
+  <div class="modal" id="adminModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 style="font-size: 1.2rem;"><i class="fa-solid fa-sliders" style="color:var(--primary-color);"></i> Painel de Controle</h2>
+        <button class="close-btn" onclick="closeModal('adminModal')">&times;</button>
+      </div>
+
+      <!-- CONFIGURAÇÕES GERAIS -->
+      <h3 style="color: var(--primary-color); font-size: 1rem; margin-bottom: 8px;">Configurações do Site</h3>
+      <div style="margin-bottom: 10px;">
+        <label style="font-size:0.8rem; color:var(--text-muted);">Número do WhatsApp (DDD + Número):</label>
+        <input type="text" id="cfgWhatsapp" class="input-field" placeholder="Ex: 5569999999999">
+      </div>
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <div style="flex: 1;">
+          <label style="font-size:0.8rem; color:var(--text-muted);">Fundo:</label>
+          <input type="color" id="cfgBgColor" class="input-field" style="height: 40px; padding: 2px;">
+        </div>
+        <div style="flex: 1;">
+          <label style="font-size:0.8rem; color:var(--text-muted);">Cor Principal:</label>
+          <input type="color" id="cfgPrimaryColor" class="input-field" style="height: 40px; padding: 2px;">
+        </div>
+      </div>
+      <button class="btn-save" style="background:var(--primary-color); color:#fff;" onclick="saveSettings()">Salvar Configurações</button>
+
+      <hr style="border-color: var(--card-border); margin: 20px 0;">
+
+      <!-- ADICIONAR / EDITAR PRODUTO -->
+      <h3 style="color: var(--primary-color); font-size: 1rem; margin-bottom: 8px;" id="form-product-title">Adicionar Novo Produto</h3>
+      <input type="hidden" id="prodIndex">
+      <input type="text" id="prodCategory" class="input-field" placeholder="Categoria (ex: COPÕES, CERVEJAS)">
+      <input type="text" id="prodName" class="input-field" placeholder="Nome do Produto">
+      <input type="text" id="prodDesc" class="input-field" placeholder="Descrição (Opcional)">
+      <input type="number" step="0.01" id="prodPrice" class="input-field" placeholder="Preço (R$)">
+      <input type="text" id="prodImage" class="input-field" placeholder="Link da Imagem (URL da foto)">
+      
+      <button class="btn-save" onclick="saveProduct()">Salvar Produto</button>
+
+      <hr style="border-color: var(--card-border); margin: 20px 0;">
+
+      <!-- LISTA DE PRODUTOS -->
+      <h3 style="color: var(--primary-color); font-size: 1rem; margin-bottom: 8px;">Produtos Cadastrados</h3>
+      <div id="admin-product-list"></div>
+    </div>
+  </div>
+
+  <script>
+    // DADOS INICIAIS
+    const defaultProducts = [
+      { category: "COPÕES", name: "Copão de Gin", desc: "Sabor refrescante com tônica e especiarias", price: 10.00, img: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=400&q=80" },
+      { category: "COPÕES", name: "Copão Whisky Red Label", desc: "Acompanha gelo de coco e energético", price: 20.00, img: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=400&q=80" },
+      { category: "COPÕES", name: "Copão Whisky Old Parr", desc: "Dose dupla com gelo saborizado", price: 30.00, img: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=400&q=80" },
+      { category: "GELOS", name: "Gelo Sabor Morango", desc: "Saboroso e de derretimento lento", price: 3.00, img: "https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=400&q=80" },
+      { category: "GELOS", name: "Gelo Sabor Melancia", desc: "Ideal para drinks tropicais", price: 3.00, img: "https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=400&q=80" },
+      { category: "GELOS", name: "Gelo Sabor Maçã Verde", desc: "Sabor cítrico para turbinar seu copão", price: 3.00, img: "https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=400&q=80" },
+      { category: "GELOS", name: "Gelo de Coco", desc: "Feito com água de coco natural", price: 4.00, img: "https://images.unsplash.com/photo-1525385133512-2f3bdd039054?auto=format&fit=crop&w=400&q=80" },
+      { category: "CERVEJAS", name: "Cerveja Brahma", desc: "Lata 350ml - Estupidamente gelada", price: 5.00, img: "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=400&q=80" },
+      { category: "CERVEJAS", name: "Cerveja Skol", desc: "Lata 350ml - Estupidamente gelada", price: 5.00, img: "https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=400&q=80" },
+      { category: "ENERGÉTICOS", name: "Energético Tradicional", desc: "Lata 473ml", price: 10.00, img: "https://images.unsplash.com/photo-1622543925917-763c34d1a86e?auto=format&fit=crop&w=400&q=80" },
+      { category: "ENERGÉTICOS", name: "Energético Melancia", desc: "Lata 473ml Sabor Melancia", price: 10.00, img: "https://images.unsplash.com/photo-1622543925917-763c34d1a86e?auto=format&fit=crop&w=400&q=80" },
+      { category: "ENERGÉTICOS", name: "Energético Morango", desc: "Lata 473ml Sabor Morango", price: 10.00, img: "https://images.unsplash.com/photo-1622543925917-763c34d1a86e?auto=format&fit=crop&w=400&q=80" },
+      { category: "ENERGÉTICOS", name: "Energético Maçã Verde", desc: "Lata 473ml Sabor Maçã Verde", price: 10.00, img: "https://images.unsplash.com/photo-1622543925917-763c34d1a86e?auto=format&fit=crop&w=400&q=80" },
+      { category: "REFRIGERANTES & ÁGUA", name: "Coca-Cola", desc: "Lata 350ml geladinha", price: 6.00, img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=400&q=80" },
+      { category: "REFRIGERANTES & ÁGUA", name: "Dydyo", desc: "Lata 350ml", price: 5.00, img: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=400&q=80" },
+      { category: "REFRIGERANTES & ÁGUA", name: "Água Mineral", desc: "Garrafa 500ml sem gás", price: 3.00, img: "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=400&q=80" }
+    ];
+
+    let products = JSON.parse(localStorage.getItem('ipanema_products')) || defaultProducts;
+    let settings = JSON.parse(localStorage.getItem('ipanema_settings')) || {
+      whatsapp: "5569999999999",
+      bgColor: "#0d0f12",
+      primaryColor: "#ff7a00"
+    };
+
+    let cart = [];
+    let selectedCategory = "TODOS";
+
+    // APLICAR CONFIGURAÇÕES
+    function applySettings() {
+      document.documentElement.style.setProperty('--bg-color', settings.bgColor);
+      document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
+      
+      document.getElementById('cfgWhatsapp').value = settings.whatsapp;
+      document.getElementById('cfgBgColor').value = settings.bgColor;
+      document.getElementById('cfgPrimaryColor').value = settings.primaryColor;
+    }
+
+    // RENDERIZAR FILTROS
+    function renderFilters() {
+      const filterBar = document.getElementById('category-filters');
+      const categories = ["TODOS", ...new Set(products.map(p => p.category))];
+
+      filterBar.innerHTML = categories.map(cat => `
+        <button class="filter-chip ${cat === selectedCategory ? 'active' : ''}" onclick="filterCategory('${cat}')">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function filterCategory(cat) {
+      selectedCategory = cat;
+      renderFilters();
+      renderMenu();
+    }
+
+    // RENDERIZAR CARDÁPIO NA TELA
+    function renderMenu() {
+      const container = document.getElementById('menu-container');
+      container.innerHTML = '';
+
+      let filteredProducts = products;
+      if (selectedCategory !== "TODOS") {
+        filteredProducts = products.filter(p => p.category === selectedCategory);
+      }
+
+      const categories = [...new Set(filteredProducts.map(p => p.category))];
+
+      categories.forEach(cat => {
+        const catProducts = filteredProducts.filter(p => p.category === cat);
+        
+        let html = `<div class="section-title"><i class="fa-solid fa-bolt" style="color:var(--primary-color);"></i> ${cat}</div>`;
+        html += `<div class="grid">`;
+
+        catProducts.forEach(p => {
+          const defaultImg = "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=400&q=80";
+          html += `
+            <div class="card">
+              <div class="card-img-wrapper">
+                <img src="${p.img || defaultImg}" class="card-img" alt="${p.name}">
+              </div>
+              <div class="card-content">
+                <div class="card-info">
+                  <h3>${p.name}</h3>
+                  <p>${p.desc || ''}</p>
+                </div>
+                <div class="card-footer">
+                  <div class="price">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</div>
+                  <button class="btn-add" onclick="addToCart('${p.name}', ${p.price})">
+                    <i class="fa-solid fa-plus"></i> Adicionar
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+        container.innerHTML += html;
+      });
+    }
+
+    // RENDERIZAR PAINEL ADMIN
+    function renderAdminProducts() {
+      const list = document.getElementById('admin-product-list');
+      list.innerHTML = '';
+
+      products.forEach((p, index) => {
+        list.innerHTML += `
+          <div class="admin-item">
+            <div>
+              <strong style="color:#fff;">${p.name}</strong> <small style="color:var(--text-muted);">(${p.category})</small><br>
+              <span style="color: var(--green-color); font-weight:700;">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</span>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-sm btn-edit" onclick="editProduct(${index})"><i class="fa-solid fa-pen"></i></button>
+              <button class="btn-sm btn-delete" onclick="deleteProduct(${index})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // CARRINHO
+    function addToCart(name, price) {
+      const existing = cart.find(item => item.name === name);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ name, price: Number(price), qty: 1 });
+      }
+      updateCartUI();
+    }
+
+    function changeQty(name, delta) {
+      const item = cart.find(i => i.name === name);
+      if (item) {
+        item.qty += delta;
+        if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
+      }
+      updateCartUI();
+      renderCartItems();
+    }
+
+    function updateCartUI() {
+      const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+      document.getElementById('cart-count').innerText = `${totalCount} item(ns) selecionado(s)`;
+      document.getElementById('cart-total').innerText = `Total: R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+      document.getElementById('modal-total').innerText = `Total: R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+    }
+
+    function renderCartItems() {
+      const container = document.getElementById('cart-items');
+      if (cart.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px 0;">Seu carrinho está vazio.</p>';
+        return;
+      }
+
+      container.innerHTML = cart.map(item => `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--card-border); padding-bottom:8px;">
+          <div>
+            <strong style="color:#fff; font-size:0.95rem;">${item.name}</strong><br>
+            <small style="color:var(--text-muted);">R$ ${item.price.toFixed(2).replace('.', ',')} un.</small>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button style="background:rgba(255,255,255,0.1); color:#fff; border:none; width:28px; height:28px; border-radius:6px; cursor:pointer;" onclick="changeQty('${item.name}', -1)">-</button>
+            <span style="font-weight:bold;">${item.qty}</span>
+            <button style="background:rgba(255,255,255,0.1); color:#fff; border:none; width:28px; height:28px; border-radius:6px; cursor:pointer;" onclick="changeQty('${item.name}', 1)">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function sendWhatsApp() {
+      if (cart.length === 0) return alert("Adicione produtos ao carrinho!");
+      const name = document.getElementById('custName').value.trim();
+      const address = document.getElementById('custAddress').value.trim();
+      const payment = document.getElementById('paymentMethod').value;
+
+      if (!name || !address) return alert("Por favor, preencha seu nome e endereço.");
+
+      let text = `*NOVO PEDIDO - ADEGA IPANEMA*\n\n*Cliente:* ${name}\n*Endereço:* ${address}\n*Forma de Pagamento:* ${payment}\n\n*ITENS PEDIDOS:*\n`;
+      let total = 0;
+      cart.forEach(item => {
+        const itemTotal = item.price * item.qty;
+        total += itemTotal;
+        text += `- ${item.qty}x ${item.name} (R$ ${itemTotal.toFixed(2).replace('.', ',')})\n`;
+      });
+      text += `\n*VALOR TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*`;
+
+      window.open(`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    // MODAIS E ADMIN
+    function openCartModal() {
+      renderCartItems();
+      document.getElementById('cartModal').style.display = 'flex';
+    }
+
+    function openAdminModal() {
+      const pass = prompt("Digite a senha do painel:");
+      if (pass === "1234") {
+        renderAdminProducts();
+        document.getElementById('adminModal').style.display = 'flex';
+      } else if (pass !== null) {
+        alert("Senha incorreta!");
+      }
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function saveSettings() {
+      settings.whatsapp = document.getElementById('cfgWhatsapp').value.trim();
+      settings.bgColor = document.getElementById('cfgBgColor').value;
+      settings.primaryColor = document.getElementById('cfgPrimaryColor').value;
+
+      localStorage.setItem('ipanema_settings', JSON.stringify(settings));
+      applySettings();
+      renderFilters();
+      renderMenu();
+      alert("Configurações salvas com sucesso!");
+    }
+
+    function saveProduct() {
+      const cat = document.getElementById('prodCategory').value.trim().toUpperCase();
+      const name = document.getElementById('prodName').value.trim();
+      const desc = document.getElementById('prodDesc').value.trim();
+      const price = parseFloat(document.getElementById('prodPrice').value);
+      const img = document.getElementById('prodImage').value.trim();
+      const index = document.getElementById('prodIndex').value;
+
+      if (!cat || !name || isNaN(price)) return alert("Preencha Categoria, Nome e Preço!");
+
+      if (index === "") {
+        products.push({ category: cat, name, desc, price, img });
+      } else {
+        products[index] = { category: cat, name, desc, price, img };
+        document.getElementById('prodIndex').value = "";
+        document.getElementById('form-product-title').innerText = "Adicionar Novo Produto";
+      }
+
+      localStorage.setItem('ipanema_products', JSON.stringify(products));
+      
+      document.getElementById('prodCategory').value = "";
+      document.getElementById('prodName').value = "";
+      document.getElementById('prodDesc').value = "";
+      document.getElementById('prodPrice').value = "";
+      document.getElementById('prodImage').value = "";
+
+      renderAdminProducts();
+      renderFilters();
+      renderMenu();
+      alert("Produto salvo!");
+    }
+
+    function editProduct(index) {
+      const p = products[index];
+      document.getElementById('prodCategory').value = p.category;
+      document.getElementById('prodName').value = p.name;
+      document.getElementById('prodDesc').value = p.desc || '';
+      document.getElementById('prodPrice').value = p.price;
+      document.getElementById('prodImage').value = p.img || '';
+      document.getElementById('prodIndex').value = index;
+      document.getElementById('form-product-title').innerText = "Editar Produto";
+    }
+
+    function deleteProduct(index) {
+      if (confirm(`Excluir "${products[index].name}"?`)) {
+        products.splice(index, 1);
+        localStorage.setItem('ipanema_products', JSON.stringify(products));
+        renderAdminProducts();
+        renderFilters();
+        renderMenu();
+      }
+    }
+
+    // INICIALIZAR
+    applySettings();
+    renderFilters();
+    renderMenu();
+  </script>
+</body>
+</html>
