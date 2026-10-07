@@ -409,7 +409,9 @@
   <div class="filter-bar" id="category-filters"></div>
 
   <!-- CONTAINER DE PRODUTOS -->
-  <div class="container" id="menu-container"></div>
+  <div class="container" id="menu-container">
+    <p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Carregando produtos...</p>
+  </div>
 
   <!-- BARRA FIXA DO CARRINHO -->
   <div class="cart-bar">
@@ -478,7 +480,7 @@
 
       <!-- ADICIONAR / EDITAR PRODUTO -->
       <h3 style="color: var(--primary-color); font-size: 1rem; margin-bottom: 8px;" id="form-product-title">Adicionar Novo Produto</h3>
-      <input type="hidden" id="prodIndex">
+      <input type="hidden" id="prodId">
       <input type="text" id="prodCategory" class="input-field" placeholder="Categoria (ex: COPÕES, CERVEJAS)">
       <input type="text" id="prodName" class="input-field" placeholder="Nome do Produto">
       <input type="text" id="prodDesc" class="input-field" placeholder="Descrição (Opcional)">
@@ -495,8 +497,25 @@
     </div>
   </div>
 
-  <script>
-    // DADOS INICIAIS
+  <!-- CONEXÃO FIREBASE (BANCO DE DADOS NA NUVEM) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Configuração do Banco de Dados
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-DummyKeyForDemoStorageOnly",
+      authDomain: "adega-ipanema-app.firebaseapp.com",
+      projectId: "adega-ipanema-app",
+      storageBucket: "adega-ipanema-app.appspot.com",
+      messagingSenderId: "1029384756",
+      appId: "1:1029384756:web:abcd1234efgh"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // DADOS INICIAIS DE FAKE-FALLBACK / SEED
     const defaultProducts = [
       { category: "COPÕES", name: "Copão de Gin", desc: "Sabor refrescante com tônica e especiarias", price: 10.00, img: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=400&q=80" },
       { category: "COPÕES", name: "Copão Whisky Red Label", desc: "Acompanha gelo de coco e energético", price: 20.00, img: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=400&q=80" },
@@ -516,13 +535,66 @@
       { category: "REFRIGERANTES & ÁGUA", name: "Água Mineral", desc: "Garrafa 500ml sem gás", price: 3.00, img: "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=400&q=80" }
     ];
 
-    let products = JSON.parse(localStorage.getItem('ipanema_products')) || defaultProducts;
-    let settings = JSON.parse(localStorage.getItem('ipanema_settings')) || {
+    window.products = [];
+    window.settings = JSON.parse(localStorage.getItem('ipanema_settings')) || {
       whatsapp: "5569999999999",
       bgColor: "#0d0f12",
       primaryColor: "#ff7a00"
     };
 
+    // ESCUTAR BANCO DE DADOS EM TEMPO REAL
+    onSnapshot(collection(db, "products"), (snapshot) => {
+      let loadedProducts = [];
+      snapshot.forEach((doc) => {
+        loadedProducts.push({ id: doc.id, ...doc.data() });
+      });
+
+      if (loadedProducts.length === 0 && snapshot.metadata.fromCache === false) {
+        // Se o banco estiver vazio, carrega os padrões
+        defaultProducts.forEach(async (p, idx) => {
+          const id = "prod_" + idx + "_" + Date.now();
+          await setDoc(doc(db, "products", id), p);
+        });
+      } else {
+        window.products = loadedProducts;
+        window.renderFilters();
+        window.renderMenu();
+        if (document.getElementById('adminModal').style.display === 'flex') {
+          window.renderAdminProducts();
+        }
+      }
+    }, (error) => {
+      console.warn("Usando produtos locais offline:", error);
+      window.products = defaultProducts;
+      window.renderFilters();
+      window.renderMenu();
+    });
+
+    // ESCUTAR CONFIGURAÇÕES NA NUVEM
+    onSnapshot(doc(db, "settings", "general"), (docSnap) => {
+      if (docSnap.exists()) {
+        window.settings = docSnap.data();
+        localStorage.setItem('ipanema_settings', JSON.stringify(window.settings));
+        window.applySettings();
+      }
+    });
+
+    // EXPOR FUNÇÕES PARA O ESCOPO GLOBAL
+    window.saveProductToCloud = async function(id, productData) {
+      const prodId = id || "prod_" + Date.now();
+      await setDoc(doc(db, "products", prodId), productData);
+    };
+
+    window.deleteProductFromCloud = async function(id) {
+      await deleteDoc(doc(db, "products", id));
+    };
+
+    window.saveSettingsToCloud = async function(settingsData) {
+      await setDoc(doc(db, "settings", "general"), settingsData);
+    };
+  </script>
+
+  <script>
     let cart = [];
     let selectedCategory = "TODOS";
 
@@ -564,6 +636,11 @@
         filteredProducts = products.filter(p => p.category === selectedCategory);
       }
 
+      if (filteredProducts.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Nenhum produto cadastrado.</p>';
+        return;
+      }
+
       const categories = [...new Set(filteredProducts.map(p => p.category))];
 
       categories.forEach(cat => {
@@ -586,7 +663,7 @@
                 </div>
                 <div class="card-footer">
                   <div class="price">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</div>
-                  <button class="btn-add" onclick="addToCart('${p.name}', ${p.price})">
+                  <button class="btn-add" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.price})">
                     <i class="fa-solid fa-plus"></i> Adicionar
                   </button>
                 </div>
@@ -614,7 +691,7 @@
             </div>
             <div style="display:flex; gap:6px;">
               <button class="btn-sm btn-edit" onclick="editProduct(${index})"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn-sm btn-delete" onclick="deleteProduct(${index})"><i class="fa-solid fa-trash"></i></button>
+              <button class="btn-sm btn-delete" onclick="deleteProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}')"><i class="fa-solid fa-trash"></i></button>
             </div>
           </div>
         `;
@@ -665,9 +742,9 @@
             <small style="color:var(--text-muted);">R$ ${item.price.toFixed(2).replace('.', ',')} un.</small>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <button style="background:rgba(255,255,255,0.1); color:#fff; border:none; width:28px; height:28px; border-radius:6px; cursor:pointer;" onclick="changeQty('${item.name}', -1)">-</button>
+            <button style="background:rgba(255,255,255,0.1); color:#fff; border:none; width:28px; height:28px; border-radius:6px; cursor:pointer;" onclick="changeQty('${item.name.replace(/'/g, "\\'")}', -1)">-</button>
             <span style="font-weight:bold;">${item.qty}</span>
-            <button style="background:rgba(255,255,255,0.1); color:#fff; border:none; width:28px; height:28px; border-radius:6px; cursor:pointer;" onclick="changeQty('${item.name}', 1)">+</button>
+            <button style="background:rgba(255,255,255,0.1); color:#fff; border:none; width:28px; height:28px; border-radius:6px; cursor:pointer;" onclick="changeQty('${item.name.replace(/'/g, "\\'")}', 1)">+</button>
           </div>
         </div>
       `).join('');
@@ -713,48 +790,43 @@
       document.getElementById(id).style.display = 'none';
     }
 
-    function saveSettings() {
+    async function saveSettings() {
       settings.whatsapp = document.getElementById('cfgWhatsapp').value.trim();
       settings.bgColor = document.getElementById('cfgBgColor').value;
       settings.primaryColor = document.getElementById('cfgPrimaryColor').value;
 
-      localStorage.setItem('ipanema_settings', JSON.stringify(settings));
+      if (window.saveSettingsToCloud) {
+        await window.saveSettingsToCloud(settings);
+      }
       applySettings();
-      renderFilters();
-      renderMenu();
-      alert("Configurações salvas com sucesso!");
+      alert("Configurações salvas e atualizadas em todos os dispositivos!");
     }
 
-    function saveProduct() {
+    async function saveProduct() {
       const cat = document.getElementById('prodCategory').value.trim().toUpperCase();
       const name = document.getElementById('prodName').value.trim();
       const desc = document.getElementById('prodDesc').value.trim();
       const price = parseFloat(document.getElementById('prodPrice').value);
       const img = document.getElementById('prodImage').value.trim();
-      const index = document.getElementById('prodIndex').value;
+      const prodId = document.getElementById('prodId').value;
 
       if (!cat || !name || isNaN(price)) return alert("Preencha Categoria, Nome e Preço!");
 
-      if (index === "") {
-        products.push({ category: cat, name, desc, price, img });
-      } else {
-        products[index] = { category: cat, name, desc, price, img };
-        document.getElementById('prodIndex').value = "";
-        document.getElementById('form-product-title').innerText = "Adicionar Novo Produto";
+      const productData = { category: cat, name, desc, price, img };
+
+      if (window.saveProductToCloud) {
+        await window.saveProductToCloud(prodId || null, productData);
       }
 
-      localStorage.setItem('ipanema_products', JSON.stringify(products));
-      
+      document.getElementById('prodId').value = "";
       document.getElementById('prodCategory').value = "";
       document.getElementById('prodName').value = "";
       document.getElementById('prodDesc').value = "";
       document.getElementById('prodPrice').value = "";
       document.getElementById('prodImage').value = "";
+      document.getElementById('form-product-title').innerText = "Adicionar Novo Produto";
 
-      renderAdminProducts();
-      renderFilters();
-      renderMenu();
-      alert("Produto salvo!");
+      alert("Produto salvo em tempo real!");
     }
 
     function editProduct(index) {
@@ -764,24 +836,20 @@
       document.getElementById('prodDesc').value = p.desc || '';
       document.getElementById('prodPrice').value = p.price;
       document.getElementById('prodImage').value = p.img || '';
-      document.getElementById('prodIndex').value = index;
+      document.getElementById('prodId').value = p.id || '';
       document.getElementById('form-product-title').innerText = "Editar Produto";
     }
 
-    function deleteProduct(index) {
-      if (confirm(`Excluir "${products[index].name}"?`)) {
-        products.splice(index, 1);
-        localStorage.setItem('ipanema_products', JSON.stringify(products));
-        renderAdminProducts();
-        renderFilters();
-        renderMenu();
+    async function deleteProduct(id, name) {
+      if (confirm(`Excluir "${name}"?`)) {
+        if (window.deleteProductFromCloud && id) {
+          await window.deleteProductFromCloud(id);
+        }
       }
     }
 
     // INICIALIZAR
     applySettings();
-    renderFilters();
-    renderMenu();
   </script>
 </body>
 </html>
